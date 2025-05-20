@@ -1,0 +1,51 @@
+{
+	"author": {
+		"name": "Baptiste Pillot",
+		"email": "baptiste@pillot.fr"
+	},
+	"dependencies": {
+		"@itrocks/class-type": "latest",
+		"@itrocks/mysql": "latest",
+		"@itrocks/reflect": "latest",
+		"@itrocks/storage": "latest",
+		"typescript": "~5.8"
+	},
+	"description": "",
+	"engines": {
+		"node": ">=18"
+	},
+	"exports": {
+		"import": "./esm/mysql-maintainer.js",
+		"require": "./cjs/mysql-maintainer.js"
+	},
+	"files": [
+		"LICENSE",
+		"README.md",
+		"*/*.d.ts",
+		"*/*.js",
+		"!*/esm.*"
+	],
+	"homepage": "https://it.rocks",
+	"keywords": [
+		"automatic",
+		"automation",
+		"backend",
+		"it.rocks",
+		"maintain",
+		"maintainer",
+		"mysql"
+	],
+	"license": "LGPL-3.0-or-later",
+	"name": "@itrocks/mysql-maintainer",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/itrocks-ts/mysql-maintainer.git"
+	},
+	"scripts": {
+		"build": "npm run build:cjs && npm run build:esm",
+		"build:cjs": "tsc -p tsconfig.cjs.json",
+		"build:esm": "tsc -p tsconfig.esm.json"
+	},
+	"types": "./esm/mysql-maintainer.d.ts",
+	"version": "0.0.1"
+}
