@@ -1,12 +1,15 @@
-import { Type }         from '@itrocks/class-type'
-import { Connection }   from 'mariadb'
-import { QueryOptions } from 'mariadb'
-import { SqlError }     from 'mariadb'
+import { ObjectOrType }    from '@itrocks/class-type'
+import { Connection }      from 'mariadb'
+import { QueryOptions }    from 'mariadb'
+import { SqlError }        from 'mariadb'
+import { MysqlMaintainer } from './mysql-maintainer'
+
+export type Context = ObjectOrType | ObjectOrType[]
 
 export class Contextual
 {
 
-	context: (object|Type|Type[])[] = []
+	context: Context[] = []
 
 	superQuery: <T = any>(sql: string | QueryOptions, values?: any) => Promise<T> = () => new Promise(() => {})
 
@@ -21,7 +24,6 @@ export class Contextual
 	async query<T = any>(sql: string | QueryOptions, values?: any): Promise<T>
 	{
 		try {
-			console.log('contextual.query', sql, values)
 			return await this.superQuery<T>(sql, values)
 		}
 		catch (error) {
@@ -32,10 +34,10 @@ export class Contextual
 			) {
 				throw error
 			}
-			console.log('query', sql, values)
-			console.log('throw', error)
-			console.log('context', this.context)
-			throw 'captured'
+			if (new MysqlMaintainer(this).manageError(error, this.context[this.context.length - 1], sql, values)) {
+				return this.query(sql, values)
+			}
+			throw error
 		}
 	}
 

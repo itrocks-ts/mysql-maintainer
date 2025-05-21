@@ -10,7 +10,7 @@
 		"@itrocks/storage": "latest",
 		"typescript": "~5.8"
 	},
-	"description": "",
+	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
 	"engines": {
 		"node": ">=18"
 	},
@@ -47,5 +47,5 @@
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.0.1"
+	"version": "0.0.2"
 }
