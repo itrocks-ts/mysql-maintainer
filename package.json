@@ -7,10 +7,12 @@
 		"@itrocks/class-type": "latest",
 		"@itrocks/mysql": "latest",
 		"@itrocks/reflect": "latest",
-		"@itrocks/storage": "latest",
-		"typescript": "~5.8"
+		"@itrocks/storage": "latest"
 	},
 	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
+	"devDependencies": {
+		"typescript": "~5.8"
+	},
 	"engines": {
 		"node": ">=18"
 	},
@@ -22,8 +24,7 @@
 		"LICENSE",
 		"README.md",
 		"*/*.d.ts",
-		"*/*.js",
-		"!*/esm.*"
+		"*/*.js"
 	],
 	"homepage": "https://it.rocks",
 	"keywords": [
@@ -47,5 +48,5 @@
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.0.2"
+	"version": "0.0.3"
 }
