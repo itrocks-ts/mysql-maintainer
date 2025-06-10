@@ -6,7 +6,7 @@ import { MysqlMaintainer } from './mysql-maintainer'
 
 export type Context = ObjectOrType | ObjectOrType[]
 
-export class Contextual
+export class Contextual implements Partial<Connection>
 {
 
 	context: Context[] = []
@@ -34,7 +34,8 @@ export class Contextual
 			) {
 				throw error
 			}
-			if (new MysqlMaintainer(this).manageError(error, this.context[this.context.length - 1], sql, values)) {
+			// @ts-ignore query applies to a Connection
+			if (await new MysqlMaintainer(this).manageError(error, this.context[this.context.length - 1], sql, values)) {
 				return this.query(sql, values)
 			}
 			throw error
