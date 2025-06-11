@@ -4,14 +4,14 @@
 		"email": "baptiste@pillot.fr"
 	},
 	"dependencies": {
-		"@itrocks/class-to-table": "latest",
 		"@itrocks/class-type": "latest",
 		"@itrocks/mysql": "latest",
-		"@itrocks/mysql-to-table": "latest",
+		"@itrocks/mysql-to-schema": "latest",
 		"@itrocks/reflect": "latest",
+		"@itrocks/reflect-to-schema": "latest",
+		"@itrocks/schema-diff": "latest",
 		"@itrocks/storage": "latest",
 		"@itrocks/store": "latest",
-		"@itrocks/table-schema-diff": "latest",
 		"mariadb": "^3.4"
 	},
 	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
@@ -53,5 +53,5 @@
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.0.4"
+	"version": "0.0.5"
 }

@@ -1,14 +1,14 @@
-import { ClassToTable }    from '@itrocks/class-to-table'
-import { ObjectOrType }    from '@itrocks/class-type'
-import { Type }            from '@itrocks/class-type'
-import { typeOf }          from '@itrocks/class-type'
-import { MysqlToTable }    from '@itrocks/mysql-to-table'
-import { storeOf }         from '@itrocks/store'
-import { TableSchemaDiff } from '@itrocks/table-schema-diff'
-import { Connection }      from 'mariadb'
-import { QueryOptions }    from 'mariadb'
-import { SqlError }        from 'mariadb'
-import { Context }         from './contextual-connection'
+import { ObjectOrType }   from '@itrocks/class-type'
+import { Type }           from '@itrocks/class-type'
+import { typeOf }         from '@itrocks/class-type'
+import { MysqlToTable }   from '@itrocks/mysql-to-schema'
+import { ReflectToTable } from '@itrocks/reflect-to-schema'
+import { TableDiff }      from '@itrocks/schema-diff'
+import { storeOf }        from '@itrocks/store'
+import { Connection }     from 'mariadb'
+import { QueryOptions }   from 'mariadb'
+import { SqlError }       from 'mariadb'
+import { Context }        from './contextual-connection'
 
 export * from './mysql'
 
@@ -73,7 +73,7 @@ export class MysqlMaintainer
 		console.log('##### UPDATE TABLE')
 
 		console.log('class table before normalize:')
-		const classTable = new ClassToTable().convert(type)
+		const classTable = new ReflectToTable().convert(type)
 		console.dir(classTable, { depth: null })
 
 		console.log('class table after normalize:')
@@ -85,7 +85,7 @@ export class MysqlMaintainer
 		console.dir(mysqlTable, { depth: null })
 
 		console.log('table diff:')
-		const tableSchemaDiff = new TableSchemaDiff(mysqlTable, classTable)
+		const tableSchemaDiff = new TableDiff(mysqlTable, classTable)
 		console.dir(tableSchemaDiff, { depth: null})
 
 		return false
