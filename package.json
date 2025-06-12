@@ -10,6 +10,7 @@
 		"@itrocks/reflect": "latest",
 		"@itrocks/reflect-to-schema": "latest",
 		"@itrocks/schema-diff": "latest",
+		"@itrocks/schema-diff-mysql": "latest",
 		"@itrocks/storage": "latest",
 		"@itrocks/store": "latest",
 		"mariadb": "^3.4"
@@ -53,5 +54,5 @@
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.0.5"
+	"version": "0.0.6"
 }

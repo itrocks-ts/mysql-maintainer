@@ -1,14 +1,15 @@
-import { ObjectOrType }   from '@itrocks/class-type'
-import { Type }           from '@itrocks/class-type'
-import { typeOf }         from '@itrocks/class-type'
-import { MysqlToTable }   from '@itrocks/mysql-to-schema'
-import { ReflectToTable } from '@itrocks/reflect-to-schema'
-import { TableDiff }      from '@itrocks/schema-diff'
-import { storeOf }        from '@itrocks/store'
-import { Connection }     from 'mariadb'
-import { QueryOptions }   from 'mariadb'
-import { SqlError }       from 'mariadb'
-import { Context }        from './contextual-connection'
+import { ObjectOrType }    from '@itrocks/class-type'
+import { Type }            from '@itrocks/class-type'
+import { typeOf }          from '@itrocks/class-type'
+import { MysqlToTable }    from '@itrocks/mysql-to-schema'
+import { ReflectToTable }  from '@itrocks/reflect-to-schema'
+import { TableDiff }       from '@itrocks/schema-diff'
+import { SchemaDiffMysql } from '@itrocks/schema-diff-mysql'
+import { storeOf }         from '@itrocks/store'
+import { Connection }      from 'mariadb'
+import { QueryOptions }    from 'mariadb'
+import { SqlError }        from 'mariadb'
+import { Context }         from './contextual-connection'
 
 export * from './mysql'
 
@@ -85,8 +86,11 @@ export class MysqlMaintainer
 		console.dir(mysqlTable, { depth: null })
 
 		console.log('table diff:')
-		const tableSchemaDiff = new TableDiff(mysqlTable, classTable)
-		console.dir(tableSchemaDiff, { depth: null})
+		const schemaDiff = new TableDiff(mysqlTable, classTable)
+		console.dir(schemaDiff, { depth: null})
+
+		const schemaDiffMysql = new SchemaDiffMysql()
+		console.log(schemaDiffMysql.sql(schemaDiff, true))
 
 		return false
 	}
