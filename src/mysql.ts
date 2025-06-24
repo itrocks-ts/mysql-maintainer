@@ -66,7 +66,7 @@ export class Mysql extends M
 	async readCollection<T extends object, PT extends object>(
 		object:   Entity<T>,
 		property: KeyOf<T>,
-		type = new ReflectProperty(object, property).collectionType.elementType as Type<PT>
+		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 	) {
 		const context = (this.connection ?? await this.connect()).context
 		context.push([object, type])
@@ -78,7 +78,7 @@ export class Mysql extends M
 	async readCollectionIds<T extends object, PT extends object>(
 		object:   Entity<T>,
 		property: KeyOf<T>,
-		type = new ReflectProperty(object, property).collectionType.elementType as Type<PT>
+		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 	) {
 		const context = (this.connection ?? await this.connect()).context
 		context.push([object, type])

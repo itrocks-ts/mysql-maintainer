@@ -73,24 +73,24 @@ export class MysqlMaintainer
 		}
 		console.log('##### UPDATE TABLE')
 
-		console.log('class table before normalize:')
 		const classTable = new ReflectToTable().convert(type)
-		console.dir(classTable, { depth: null })
-
-		console.log('class table after normalize:')
 		new MysqlToTable(this.connection).normalize(classTable)
-		console.dir(classTable, { depth: null })
-
-		console.log('mysql table:')
 		const mysqlTable = await ((new MysqlToTable(this.connection)).convert(tableName))
-		console.dir(mysqlTable, { depth: null })
 
-		console.log('table diff:')
 		const schemaDiff = new TableDiff(mysqlTable, classTable)
-		console.dir(schemaDiff, { depth: null})
+
+		console.log('##### Additions:')
+		console.dir(schemaDiff.additions, { depth: null})
+		console.log('##### Changes:')
+		console.dir(schemaDiff.changes, { depth: null})
+		console.log('##### Deletions:')
+		console.dir(schemaDiff.deletions, { depth: null})
 
 		const schemaDiffMysql = new SchemaDiffMysql()
-		console.log(schemaDiffMysql.sql(schemaDiff, true))
+		const sql = schemaDiffMysql.sql(schemaDiff, true)
+		console.log(sql)
+
+		await this.connection.query(sql)
 
 		return false
 	}
