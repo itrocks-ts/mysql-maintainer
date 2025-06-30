@@ -20,46 +20,46 @@ export class Mysql extends M
 
 	async deleteId<T extends object>(type: ObjectOrType<T>, id: any, property: KeyOf<Entity<T>> = 'id')
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(type)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(type)
 		const result = await super.deleteId(type, id, property)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async deleteRelatedId<T extends Entity>(object: T, property: KeyOf<T>, id: Identifier)
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(object)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(object)
 		const result = await super.deleteRelatedId(object, property, id)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async insert<T extends object>(object: T)
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(object)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(object)
 		const result = await super.insert(object)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async insertRelatedId<T extends Entity>(object: T, property: KeyOf<T>, id: Identifier)
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(object)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(object)
 		const result = await super.insertRelatedId(object, property, id)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async read<T extends object>(type: Type<T>, id: Identifier)
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(type)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(type)
 		const result = await super.read(type, id)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
@@ -68,10 +68,10 @@ export class Mysql extends M
 		property: KeyOf<T>,
 		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 	) {
-		const context = (this.connection ?? await this.connect()).context
-		context.push([object, type])
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push([object, type])
 		const result = await super.readCollection(object, property, type)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
@@ -80,37 +80,37 @@ export class Mysql extends M
 		property: KeyOf<T>,
 		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 	) {
-		const context = (this.connection ?? await this.connect()).context
-		context.push([object, type])
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push([object, type])
 		const result = await super.readCollectionIds(object, property, type)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async readMultiple<T extends object>(type: Type<T>, ids: Identifier[])
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(type)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(type)
 		const result = await super.readMultiple(type, ids)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async search<T extends object>(type: Type<T>, search: SearchType<T> = {}): Promise<Entity<T>[]>
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(type)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(type)
 		const result = await super.search(type, search)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 
 	async update<T extends object>(object: Entity<T>)
 	{
-		const context = (this.connection ?? await this.connect()).context
-		context.push(object)
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(object)
 		const result = await super.update(object)
-		context.pop()
+		contexts.pop()
 		return result
 	}
 

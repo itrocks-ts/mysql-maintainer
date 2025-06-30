@@ -1,6 +1,7 @@
 import { ObjectOrType }    from '@itrocks/class-type'
 import { Type }            from '@itrocks/class-type'
 import { typeOf }          from '@itrocks/class-type'
+import { joinTableName }   from '@itrocks/mysql'
 import { MysqlToTable }    from '@itrocks/mysql-to-schema'
 import { ReflectToTable }  from '@itrocks/reflect-to-schema'
 import { TableDiff }       from '@itrocks/schema-diff'
@@ -21,9 +22,24 @@ export class MysqlMaintainer
 	{
 	}
 
-	createImplicitTables(sql: string | QueryOptions)
+	async createImplicitTable(type1: ObjectOrType, type2: ObjectOrType)
 	{
-		return false
+		const table1 = storeOf(type1)
+		const table2 = storeOf(type2)
+		if (!table1 || !table2) {
+			throw 'Collection objects are not stored'
+		}
+		const joinTable = joinTableName(table1, table2)
+
+		const query = 'CREATE TABLE `' + joinTable + '` (\n'
+			+ '`' + table1 + '_id` bigint NOT NULL,\n'
+			+ '`' + table2 + '_id` bigint NOT NULL,\n'
+			+ 'PRIMARY KEY (`' + table1 + '_id`,`' + table2 + '_id`)'
+			+ ')'
+		console.log(query)
+		await this.connection.query(query)
+
+		return true
 	}
 
 	async createTable(type: Type)
@@ -51,8 +67,6 @@ export class MysqlMaintainer
 			case 'ER_BAD_FIELD_ERROR':
 			case 'ER_CANNOT_ADD_FOREIGN':
 				return await this.updateContextTables(context)
-			case 'ER_CANT_CREATE_TABLE':
-				return this.createImplicitTables(sql)
 			case 'ER_NO_SUCH_TABLE':
 				return this.updateContextTables(context)
 		}
@@ -69,7 +83,10 @@ export class MysqlMaintainer
 				throw 'No table name for type'
 			}
 			const exists = (await this.connection.query('SHOW TABLES LIKE ?', tableName)) as Array<any>
-			await (exists.length ? this.updateTable(type) : this.createTable(type))
+			exists.length ? await this.updateTable(type) : await this.createTable(type)
+		}
+		if (contexts.length === 2) {
+			await this.createImplicitTable(contexts[0], contexts[1])
 		}
 		return true
 	}
@@ -90,6 +107,10 @@ export class MysqlMaintainer
 		console.dir(schemaDiff.additions, { depth: null })
 		console.dir(schemaDiff.changes,   { depth: null })
 		console.dir(schemaDiff.deletions, { depth: null })
+
+		if (!schemaDiff.additions && !schemaDiff.changes && !schemaDiff.deletions && !schemaDiff.tableChanges()) {
+			return false
+		}
 
 		const schemaDiffMysql = new SchemaDiffMysql()
 		const sql = schemaDiffMysql.sql(schemaDiff, true)
