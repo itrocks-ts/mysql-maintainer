@@ -5,6 +5,7 @@ import { MysqlToTable }    from '@itrocks/mysql-to-schema'
 import { ReflectToTable }  from '@itrocks/reflect-to-schema'
 import { TableDiff }       from '@itrocks/schema-diff'
 import { SchemaDiffMysql } from '@itrocks/schema-diff-mysql'
+import { SchemaToMysql }   from '@itrocks/schema-to-mysql'
 import { storeOf }         from '@itrocks/store'
 import { Connection }      from 'mariadb'
 import { QueryOptions }    from 'mariadb'
@@ -20,26 +21,28 @@ export class MysqlMaintainer
 	{
 	}
 
-	createContextTables(context: Context): boolean
+	createImplicitTables(sql: string | QueryOptions)
 	{
-		const contexts: ObjectOrType[] = Array.isArray(context) ? context : [context]
-		for (const context of contexts) {
-			this.createTable(typeOf(context))
+		return false
+	}
+
+	async createTable(type: Type)
+	{
+		const tableName = storeOf(type)
+		if (!tableName) {
+			throw 'No table name for type'
 		}
-		return false
+
+		const tableSchema   = new ReflectToTable().convert(type)
+		const schemaToMysql = new SchemaToMysql()
+		const sql           = schemaToMysql.sql(tableSchema)
+		console.log(sql)
+		await this.connection.query(sql)
+
+		return true
 	}
 
-	createImplicitTables(sql: string | QueryOptions): boolean
-	{
-		return false
-	}
-
-	createTable(type: Type): boolean
-	{
-		return false
-	}
-
-	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[]): Promise<boolean>
+	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[])
 	{
 		console.log('query', sql, values)
 		console.log('throw', error)
@@ -51,7 +54,7 @@ export class MysqlMaintainer
 			case 'ER_CANT_CREATE_TABLE':
 				return this.createImplicitTables(sql)
 			case 'ER_NO_SUCH_TABLE':
-				return this.createContextTables(context)
+				return this.updateContextTables(context)
 		}
 		return false
 	}
@@ -60,9 +63,15 @@ export class MysqlMaintainer
 	{
 		const contexts: ObjectOrType[] = Array.isArray(context) ? context : [context]
 		for (const context of contexts) {
-			await this.updateTable(typeOf(context))
+			const type      = typeOf(context)
+			const tableName = storeOf(type)
+			if (!tableName) {
+				throw 'No table name for type'
+			}
+			const exists = (await this.connection.query('SHOW TABLES LIKE ?', tableName)) as Array<any>
+			await (exists.length ? this.updateTable(type) : this.createTable(type))
 		}
-		return false
+		return true
 	}
 
 	async updateTable(type: Type): Promise<boolean>
@@ -71,7 +80,6 @@ export class MysqlMaintainer
 		if (!tableName) {
 			throw 'No table name for type'
 		}
-		console.log('##### UPDATE TABLE')
 
 		const classTable = new ReflectToTable().convert(type)
 		new MysqlToTable(this.connection).normalize(classTable)
@@ -79,20 +87,16 @@ export class MysqlMaintainer
 
 		const schemaDiff = new TableDiff(mysqlTable, classTable)
 
-		console.log('##### Additions:')
-		console.dir(schemaDiff.additions, { depth: null})
-		console.log('##### Changes:')
-		console.dir(schemaDiff.changes, { depth: null})
-		console.log('##### Deletions:')
-		console.dir(schemaDiff.deletions, { depth: null})
+		console.dir(schemaDiff.additions, { depth: null })
+		console.dir(schemaDiff.changes,   { depth: null })
+		console.dir(schemaDiff.deletions, { depth: null })
 
 		const schemaDiffMysql = new SchemaDiffMysql()
 		const sql = schemaDiffMysql.sql(schemaDiff, true)
-		console.log(sql)
 
 		await this.connection.query(sql)
 
-		return false
+		return true
 	}
 
 }

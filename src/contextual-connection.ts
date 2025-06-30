@@ -4,6 +4,8 @@ import { QueryOptions }    from 'mariadb'
 import { SqlError }        from 'mariadb'
 import { MysqlMaintainer } from './mysql-maintainer'
 
+const MANAGED_ERROR_CODES = ['ER_BAD_FIELD_ERROR', 'ER_CANNOT_ADD_FOREIGN', 'ER_CANT_CREATE_TABLE', 'ER_NO_SUCH_TABLE']
+
 export type Context = ObjectOrType | ObjectOrType[]
 
 export class Contextual implements Partial<Connection>
@@ -30,7 +32,7 @@ export class Contextual implements Partial<Connection>
 			if (
 				!(error instanceof SqlError)
 				|| !error.code
-				|| !['ER_BAD_FIELD_ERROR'].includes(error.code)
+				|| !MANAGED_ERROR_CODES.includes(error.code)
 			) {
 				throw error
 			}
