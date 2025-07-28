@@ -31,12 +31,13 @@ export class MysqlMaintainer
 		}
 		const joinTable = joinTableName(table1, table2)
 
-		const query = 'CREATE TABLE `' + joinTable + '` (\n'
-			+ '`' + table1 + '_id` bigint NOT NULL,\n'
-			+ '`' + table2 + '_id` bigint NOT NULL,\n'
-			+ 'PRIMARY KEY (`' + table1 + '_id`,`' + table2 + '_id`)'
-			+ ')'
-		console.log(query)
+		const query = `CREATE TABLE \`${joinTable}\` (
+${table1}_id int unsigned NOT NULL,
+${table2}_id int unsigned NOT NULL,
+PRIMARY KEY (${table1}_id, ${table2}_id),
+CONSTRAINT \`${joinTable}.${table1}_id\` FOREIGN KEY (${table1}_id) REFERENCES \`${table1}\` (id) ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \`${table2}\` (id) ON DELETE CASCADE ON UPDATE CASCADE
+)`
 		await this.connection.query(query)
 
 		return true
