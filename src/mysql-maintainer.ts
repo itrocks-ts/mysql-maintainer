@@ -114,7 +114,7 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 		}
 
 		const schemaDiffMysql = new SchemaDiffMysql()
-		const sql = schemaDiffMysql.sql(schemaDiff, true)
+		const sql = schemaDiffMysql.sql(schemaDiff)
 
 		await this.connection.query(sql)
 
