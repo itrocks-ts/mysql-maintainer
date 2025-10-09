@@ -1,6 +1,7 @@
 import { KeyOf }                from '@itrocks/class-type'
 import { ObjectOrType }         from '@itrocks/class-type'
 import { Type }                 from '@itrocks/class-type'
+import { Options }              from '@itrocks/storage'
 import { Mysql as M }           from '@itrocks/mysql'
 import { ReflectProperty }      from '@itrocks/reflect'
 import { Entity }               from '@itrocks/storage'
@@ -96,11 +97,11 @@ export class Mysql extends M
 		return result
 	}
 
-	async search<T extends object>(type: Type<T>, search: SearchType<T> = {}): Promise<Entity<T>[]>
+	async search<T extends object>(type: Type<T>, search: SearchType<T> = {}, options?: Options): Promise<Entity<T>[]>
 	{
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push(type)
-		const result = await super.search(type, search)
+		const result = await super.search(type, search, options)
 		contexts.pop()
 		return result
 	}
