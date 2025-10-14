@@ -26,12 +26,9 @@ export class MysqlMaintainer
 
 	async createImplicitTable(type1: ObjectOrType, type2: ObjectOrType)
 	{
-		const table1 = storeOf(type1)
-		const table2 = storeOf(type2)
-		if (!table1 || !table2) {
-			throw 'Collection objects are not stored'
-		}
-		const joinTable = joinTableName(table1, table2)
+		const joinTable = this.implicitTableName(type1, type2)
+		const table1    = storeOf(type1)
+		const table2    = storeOf(type2)
 
 		const query = `CREATE TABLE \`${joinTable}\` (
 ${table1}_id int unsigned NOT NULL,
@@ -60,6 +57,16 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 		return true
 	}
 
+	implicitTableName(type1: ObjectOrType, type2: ObjectOrType)
+	{
+		const table1 = storeOf(type1)
+		const table2 = storeOf(type2)
+		if (!table1 || !table2) {
+			throw 'Collection objects are not stored'
+		}
+		return joinTableName(table1, table2)
+	}
+
 	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[])
 	{
 		switch (error.code) {
@@ -67,12 +74,13 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 			case 'ER_CANNOT_ADD_FOREIGN':
 				return await this.updateContextTables(context)
 			case 'ER_NO_SUCH_TABLE':
-				return this.updateContextTables(context)
+				const tableName = /Table '.*?\.(.*?)'/.exec(error.message)?.[1]
+				return this.updateContextTables(context, tableName)
 		}
 		return false
 	}
 
-	async updateContextTables(context: Context): Promise<boolean>
+	async updateContextTables(context: Context, tableName?: string): Promise<boolean>
 	{
 		const contexts: ObjectOrType[] = Array.isArray(context) ? context : [context]
 		for (const context of contexts) {
@@ -82,9 +90,9 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 				throw 'No table name for type'
 			}
 			const exists = (await this.connection.query('SHOW TABLES LIKE ?', tableName)) as Array<any>
-			exists.length ? await this.updateTable(type) : await this.createTable(type)
+			await (exists.length ? this.updateTable(type) : this.createTable(type))
 		}
-		if (contexts.length === 2) {
+		if ((contexts.length === 2) && (this.implicitTableName(contexts[0], contexts[1]) === tableName)) {
 			await this.createImplicitTable(contexts[0], contexts[1])
 		}
 		return true
