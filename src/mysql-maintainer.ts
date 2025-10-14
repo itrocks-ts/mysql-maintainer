@@ -15,6 +15,8 @@ import { Context }         from './contextual-connection'
 
 export * from './mysql'
 
+const DELETION = false
+
 export class MysqlMaintainer
 {
 
@@ -53,7 +55,6 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 		const tableSchema   = new ReflectToTable().convert(type)
 		const schemaToMysql = new SchemaToMysql()
 		const sql           = schemaToMysql.sql(tableSchema)
-		console.log(sql)
 		await this.connection.query(sql)
 
 		return true
@@ -61,9 +62,6 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 
 	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[])
 	{
-		console.log('query', sql, values)
-		console.log('throw', error)
-		console.log('context', context)
 		switch (error.code) {
 			case 'ER_BAD_FIELD_ERROR':
 			case 'ER_CANNOT_ADD_FOREIGN':
@@ -105,16 +103,17 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 
 		const schemaDiff = new TableDiff(mysqlTable, classTable)
 
-		console.dir(schemaDiff.additions, { depth: null })
-		console.dir(schemaDiff.changes,   { depth: null })
-		console.dir(schemaDiff.deletions, { depth: null })
-
-		if (!schemaDiff.additions && !schemaDiff.changes && !schemaDiff.deletions && !schemaDiff.tableChanges()) {
+		if (
+			!schemaDiff.additions.length
+			&& !schemaDiff.changes.length
+			&& (!schemaDiff.deletions.length || !DELETION)
+			&& !schemaDiff.tableChanges()
+		) {
 			return false
 		}
 
 		const schemaDiffMysql = new SchemaDiffMysql()
-		const sql = schemaDiffMysql.sql(schemaDiff)
+		const sql = schemaDiffMysql.sql(schemaDiff, DELETION)
 
 		await this.connection.query(sql)
 
