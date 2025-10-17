@@ -13,7 +13,7 @@ import { QueryOptions }    from 'mariadb'
 import { SqlError }        from 'mariadb'
 import { Context }         from './contextual-connection'
 
-export * from './mysql'
+export { Mysql } from './mysql'
 
 const DELETION = false
 
