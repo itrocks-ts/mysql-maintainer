@@ -37,10 +37,13 @@
 		"automatic",
 		"automation",
 		"backend",
+		"database",
 		"it.rocks",
-		"maintain",
-		"maintainer",
-		"mysql"
+		"mariadb",
+		"migration",
+		"mysql",
+		"schema",
+		"synchronization"
 	],
 	"license": "LGPL-3.0-or-later",
 	"name": "@itrocks/mysql-maintainer",
@@ -54,5 +57,5 @@
 		"build:esm": "tsc -p tsconfig.esm.json"
 	},
 	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.0.17"
+	"version": "0.0.18"
 }
