@@ -15,6 +15,8 @@ import { Context }         from './contextual-connection'
 
 export { Mysql } from './mysql'
 
+export const DEBUG = false
+
 const DELETION = false
 
 export class MysqlMaintainer
@@ -69,6 +71,7 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 
 	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[])
 	{
+		if (DEBUG) console.log('MAINTAINER: manageError', error)
 		switch (error.code) {
 			case 'ER_BAD_FIELD_ERROR':
 			case 'ER_CANNOT_ADD_FOREIGN':
