@@ -64,11 +64,9 @@ export class Mysql extends M
 		return result
 	}
 
-	async readCollection<T extends object, PT extends object>(
-		object:   Entity<T>,
-		property: KeyOf<T>,
-		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
-	) {
+	async readCollection<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>)
+	{
+		type         ??= new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push([object, type])
 		const result = await super.readCollection(object, property, type)
@@ -76,11 +74,9 @@ export class Mysql extends M
 		return result
 	}
 
-	async readCollectionIds<T extends object, PT extends object>(
-		object:   Entity<T>,
-		property: KeyOf<T>,
-		type = new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
-	) {
+	async readCollectionIds<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>)
+	{
+		type         ??= new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push([object, type])
 		const result = await super.readCollectionIds(object, property, type)
