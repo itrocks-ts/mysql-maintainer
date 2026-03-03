@@ -1,11 +1,12 @@
 import { KeyOf }                from '@itrocks/class-type'
 import { ObjectOrType }         from '@itrocks/class-type'
 import { Type }                 from '@itrocks/class-type'
-import { Options }              from '@itrocks/storage'
 import { Mysql as M }           from '@itrocks/mysql'
 import { ReflectProperty }      from '@itrocks/reflect'
 import { Entity }               from '@itrocks/storage'
 import { Identifier }           from '@itrocks/storage'
+import { MayEntity }            from '@itrocks/storage'
+import { Options }              from '@itrocks/storage'
 import { SearchType }           from '@itrocks/storage'
 import { Contextual }           from './contextual-connection'
 import { ContextualConnection } from './contextual-connection'
@@ -89,6 +90,15 @@ export class Mysql extends M
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push(type)
 		const result = await super.readMultiple(type, ids)
+		contexts.pop()
+		return result
+	}
+
+	async save<T extends object>(object: MayEntity<T>)
+	{
+		const contexts = (this.connection ?? await this.connect()).contexts
+		contexts.push(object)
+		const result = await super.save(object)
 		contexts.pop()
 		return result
 	}

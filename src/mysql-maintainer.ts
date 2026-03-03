@@ -69,7 +69,7 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 		return joinTableName(table1, table2)
 	}
 
-	async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[])
+	async manageError(error: SqlError, context: Context, _sql: string | QueryOptions, _values: any[])
 	{
 		if (DEBUG) console.log('MAINTAINER: manageError', error)
 		switch (error.code) {
