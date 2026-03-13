@@ -32,9 +32,8 @@ export class Contextual implements Partial<Connection>
 		}
 		catch (error) {
 			if (
-				!(error instanceof SqlError)
-				|| !error.code
-				|| !MANAGED_ERROR_CODES.includes(error.code)
+				!(error && (typeof error === 'object') && (error as SqlError).code)
+				|| !MANAGED_ERROR_CODES.includes((error as SqlError).code!)
 			) {
 				if (DEBUG) console.log('MAINTAINER: throw', error)
 				throw error
