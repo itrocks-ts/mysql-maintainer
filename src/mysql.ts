@@ -1,4 +1,3 @@
-import { KeyOf }                from '@itrocks/class-type'
 import { ObjectOrType }         from '@itrocks/class-type'
 import { Type }                 from '@itrocks/class-type'
 import { Mysql as M }           from '@itrocks/mysql'
@@ -20,7 +19,7 @@ export class Mysql extends M
 		return Contextual.prototype.applyTo(await super.connect() as ContextualConnection)
 	}
 
-	async deleteId<T extends object>(type: ObjectOrType<T>, id: any, property: KeyOf<Entity<T>> = 'id')
+	async deleteId<T extends object>(type: ObjectOrType<T>, id: any, property: keyof Entity<T> = 'id')
 	{
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push(type)
@@ -29,7 +28,7 @@ export class Mysql extends M
 		return result
 	}
 
-	async deleteRelatedId<T extends Entity>(object: T, property: KeyOf<T>, id: Identifier)
+	async deleteRelatedId<T extends Entity>(object: T, property: keyof T, id: Identifier)
 	{
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push(object)
@@ -47,7 +46,7 @@ export class Mysql extends M
 		return result
 	}
 
-	async insertRelatedId<T extends Entity>(object: T, property: KeyOf<T>, id: Identifier)
+	async insertRelatedId<T extends Entity>(object: T, property: keyof T, id: Identifier)
 	{
 		const contexts = (this.connection ?? await this.connect()).contexts
 		contexts.push(object)
@@ -65,7 +64,7 @@ export class Mysql extends M
 		return result
 	}
 
-	async readCollection<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>)
+	async readCollection<T extends object, PT extends object>(object: Entity<T>, property: keyof T, type?: Type<PT>)
 	{
 		type         ??= new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 		const contexts = (this.connection ?? await this.connect()).contexts
@@ -75,7 +74,7 @@ export class Mysql extends M
 		return result
 	}
 
-	async readCollectionIds<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>)
+	async readCollectionIds<T extends object, PT extends object>(object: Entity<T>, property: keyof T, type?: Type<PT>)
 	{
 		type         ??= new ReflectProperty(object, property).collectionType.elementType.type as Type<PT>
 		const contexts = (this.connection ?? await this.connect()).contexts
