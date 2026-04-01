@@ -15,7 +15,7 @@ import { Context }         from './contextual-connection'
 
 export { Mysql } from './mysql'
 
-export const DEBUG = false
+export const DEBUG = true
 
 const DELETION = false
 
@@ -75,7 +75,7 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 		switch (error.code) {
 			case 'ER_BAD_FIELD_ERROR':
 			case 'ER_CANNOT_ADD_FOREIGN':
-				return await this.updateContextTables(context)
+				return this.updateContextTables(context)
 			case 'ER_NO_SUCH_TABLE':
 				const tableName = /Table '.*?\.(.*?)'/.exec(error.message)?.[1]
 				return this.updateContextTables(context, tableName)
@@ -85,6 +85,7 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 
 	async updateContextTables(context: Context, tableName?: string): Promise<boolean>
 	{
+		let   result = false
 		const contexts: ObjectOrType[] = Array.isArray(context) ? context : [context]
 		for (const context of contexts) {
 			const type      = typeOf(context)
@@ -93,12 +94,12 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 				throw 'No table name for type'
 			}
 			const exists = (await this.connection.query('SHOW TABLES LIKE ?', tableName)) as Array<any>
-			await (exists.length ? this.updateTable(type) : this.createTable(type))
+			result ||= await (exists.length ? this.updateTable(type) : this.createTable(type))
 		}
 		if ((contexts.length === 2) && (this.implicitTableName(contexts[0], contexts[1]) === tableName)) {
-			await this.createImplicitTable(contexts[0], contexts[1])
+			result ||= await this.createImplicitTable(contexts[0], contexts[1])
 		}
-		return true
+		return result
 	}
 
 	async updateTable(type: Type): Promise<boolean>
