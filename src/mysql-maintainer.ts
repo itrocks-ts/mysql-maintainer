@@ -15,7 +15,7 @@ import { Context }         from './contextual-connection'
 
 export { Mysql } from './mysql'
 
-export const DEBUG = true
+export const DEBUG = false
 
 const DELETION = false
 
