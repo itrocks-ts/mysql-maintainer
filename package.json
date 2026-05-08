@@ -17,20 +17,17 @@
 	},
 	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
 	"devDependencies": {
-		"typescript": "~5.9"
+		"typescript": "^6.0"
 	},
 	"engines": {
-		"node": ">=18"
+		"node": ">=24"
 	},
-	"exports": {
-		"import": "./esm/mysql-maintainer.js",
-		"require": "./cjs/mysql-maintainer.js"
-	},
+	"exports": "./cjs/mysql-maintainer.js",
 	"files": [
 		"LICENSE",
 		"README.md",
-		"*/*.d.ts",
-		"*/*.js"
+		"cjs",
+		"!*.map"
 	],
 	"homepage": "https://it.rocks",
 	"keywords": [
@@ -52,10 +49,7 @@
 		"url": "git+https://github.com/itrocks-ts/mysql-maintainer.git"
 	},
 	"scripts": {
-		"build": "npm run build:cjs && npm run build:esm",
-		"build:cjs": "tsc -p tsconfig.cjs.json",
-		"build:esm": "tsc -p tsconfig.esm.json"
+		"build": "tsc"
 	},
-	"types": "./esm/mysql-maintainer.d.ts",
-	"version": "0.2.3"
+	"version": "0.2.4"
 }
