@@ -16,14 +16,37 @@ export class Contextual implements Partial<Connection>
 
 	contexts: Context[] = []
 
+	errorCount: Record<string, Record<string, Array<number>>> = {}
+
 	superQuery: <T = any>(sql: string | QueryOptions, values?: any) => Promise<T> = () => new Promise(() => {})
 
 	async applyTo(connection: ContextualConnection)
 	{
-		connection.contexts   = []
-		connection.superQuery = connection.query
-		connection.query      = Contextual.prototype.query
+		connection.contexts            = []
+		connection.errorCount          = {}
+		connection.incrementErrorCount = Contextual.prototype.incrementErrorCount
+		connection.isSqlError          = Contextual.prototype.isSqlError
+		connection.superQuery          = connection.query
+		connection.query               = Contextual.prototype.query
 		return connection
+	}
+
+	incrementErrorCount(sql: string, error: any): this is Connection
+	{
+		if (!this.errorCount[sql]) {
+			this.errorCount[sql] = {}
+		}
+		if (!this.errorCount[sql][error.message]) {
+			this.errorCount[sql][error.message] = []
+		}
+		this.errorCount[sql][error.message].push(new Date().getTime())
+		console.log('incremented', this.errorCount[sql][error.message].length, ':', sql, error.message)
+		return true
+	}
+
+	isSqlError(error: any): error is SqlError
+	{
+		return (typeof error === 'object') && !!(error as SqlError).code
 	}
 
 	async query<T = any>(sql: string | QueryOptions, values?: any): Promise<T>
@@ -33,17 +56,19 @@ export class Contextual implements Partial<Connection>
 			return await this.superQuery<T>(sql, values)
 		}
 		catch (error) {
-			if (
-				!(error && (typeof error === 'object') && (error as SqlError).code)
-				|| !MANAGED_ERROR_CODES.includes((error as SqlError).code!)
-			) {
+			if (!this.isSqlError(error) || !MANAGED_ERROR_CODES.includes(error.code!)) {
 				if (DEBUG) console.log('MAINTAINER: throw', error)
 				throw error
 			}
-			// @ts-ignore query applies to a Connection
-			if (await new MysqlMaintainer(this).manageError(error, this.contexts[this.contexts.length - 1], sql, values)) {
+			sql = (typeof sql === 'object') ? sql.sql : sql
+			if (
+				this.incrementErrorCount(sql, error)
+				&& (this.errorCount[sql][error.message].length < 5)
+				&& await new MysqlMaintainer(this).manageError(error, this.contexts[this.contexts.length - 1], sql, values)
+			) {
 				return this.query(sql, values)
 			}
+			if (DEBUG) console.log('MAINTAINER: throw (2)', error)
 			throw error
 		}
 	}
