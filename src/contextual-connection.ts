@@ -1,9 +1,9 @@
 import { ObjectOrType }    from '@itrocks/class-type'
-import { Connection, Prepare} from 'mariadb'
-import {QueryOptions} from 'mariadb-share'
-import {SqlError} from 'mariadb-share'
-import {DEBUG} from './mysql-maintainer'
-import {MysqlMaintainer} from './mysql-maintainer'
+import { Connection }      from 'mariadb'
+import { QueryOptions }    from 'mariadb'
+import { SqlError }        from 'mariadb'
+import { DEBUG }           from './mysql-maintainer'
+import { MysqlMaintainer } from './mysql-maintainer'
 
 const MANAGED_ERROR_CODES = ['ER_BAD_FIELD_ERROR', 'ER_CANNOT_ADD_FOREIGN', 'ER_NO_SUCH_TABLE']
 
