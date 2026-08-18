@@ -8,267 +8,87 @@
 
 Reactively maintains database structure by updating schema and retrying on MySQL errors.
 
-*This documentation was written by an artificial intelligence and may contain errors or approximations.
-It has not yet been fully reviewed by a human. If anything seems unclear or incomplete,
-please feel free to contact the author of this package.*
+Connect this package to [`@itrocks/mysql`](https://github.com/itrocks-ts/mysql), then keep using your MySQL data
+sources normally. Their database structure is maintained automatically, as operations need it, when persistent object
+structures evolve. There are no migration files to write and no maintenance API to call.
 
-## Installation
+## Use with the it.rocks framework
+
+An application based on [`@itrocks/framework`](https://github.com/itrocks-ts/framework) needs the framework, the MySQL
+data source, and this package:
 
 ```bash
-npm i @itrocks/mysql-maintainer
+npm i @itrocks/framework @itrocks/mysql @itrocks/mysql-maintainer
 ```
 
-## Usage
+Add the composition and the main MySQL data source to the project's `config.yaml`:
 
-`@itrocks/mysql-maintainer` provides two main entry points:
+```yaml
+compose:
+  '@itrocks/mysql:Mysql': '@itrocks/mysql-maintainer:Mysql'
 
-- the `Mysql` class, a drop‑in replacement for `@itrocks/mysql` that
-  automatically keeps your MySQL/MariaDB schema in sync with your
-  TypeScript models while you work with data;
-- the `MysqlMaintainer` class, a lower‑level helper you can call
-  directly when you want to create or update tables yourself.
-
-In both cases, the package reacts to common MySQL errors
-(`ER_BAD_FIELD_ERROR`, `ER_CANNOT_ADD_FOREIGN`, `ER_NO_SUCH_TABLE`) and
-updates the database structure, then transparently retries the failed
-query.
-
-### Minimal example: automatic schema maintenance
-
-```ts
-import { Mysql } from '@itrocks/mysql-maintainer'
-import { Entity } from '@itrocks/storage'
-
-class User extends Entity<User>
-{
-  name  = ''
-  email = ''
-}
-
-async function main() {
-  const mysql = new Mysql({
-    // Same connection options as @itrocks/mysql / mariadb
-    host: 'localhost',
-    user: 'root',
-    database: 'demo',
-  })
-
-  // On first call, mysql-maintainer will create or update the
-  // corresponding table based on the User class definition, then retry
-  // the insert.
-  await mysql.insert(new User().assign({ name: 'Alice', email: 'a@example.com' }))
-}
+dataSource:
+  engine: '@itrocks/mysql'
+  host: localhost
+  user: application
+  password: secret
+  database: application
 ```
 
-You can continue using the `Mysql` instance as you would use
-`@itrocks/mysql`: methods such as `read`, `search`, `update`, and
-collection helpers are forwarded to the base implementation, while
-`mysql-maintainer` keeps track of the involved entities and adjusts the
-schema when needed.
-
-### Example: maintaining join tables on collection access
-
-When you read many‑to‑many relationships defined as collections on your
-entities, `Mysql` automatically creates or updates the implicit join
-table.
-
-```ts
-import { Mysql }   from '@itrocks/mysql-maintainer'
-import { Entity }  from '@itrocks/storage'
-
-class Tag extends Entity<Tag>
-{
-  name = ''
-}
-
-class Article extends Entity<Article>
-{
-  title = ''
-
-  // Many-to-many with Tag; the framework will map this to a join table
-  tags: Tag[] = []
-}
-
-async function loadArticleTags(id: number) {
-  const mysql = new Mysql({ database: 'demo' })
-
-  const article = await mysql.read(Article, id)
-
-  // If the join table does not exist yet or is out of date, it will be
-  // created/updated before the query is retried.
-  const tags = await mysql.readCollection(article, 'tags')
-  return tags
-}
-```
-
-### Example: using MysqlMaintainer directly
-
-If you want to control when schema updates happen (for instance during a
-deployment step or a migration command), you can work with
-`MysqlMaintainer` and a `mariadb` connection.
-
-```ts
-import { createConnection } from 'mariadb'
-import { MysqlMaintainer }  from '@itrocks/mysql-maintainer'
-import { Entity }           from '@itrocks/storage'
-
-class Product extends Entity<Product>
-{
-  name  = ''
-  price = 0
-}
-
-async function ensureSchema() {
-  const connection     = await createConnection({ database: 'demo' })
-  const schemaManager  = new MysqlMaintainer(connection)
-
-  // Create or update the table corresponding to Product
-  await schemaManager.updateTable(Product)
-
-  await connection.end()
-}
-```
-
-## API
-
-### `class Mysql extends @itrocks/mysql.Mysql`
-
-Enhanced MySQL storage class that automatically tracks the context of
-operations and lets `MysqlMaintainer` react to schema‑related errors.
-
-Aside from the behavior described below, it exposes the same public API
-as `@itrocks/mysql.Mysql`.
-
-#### Properties
-
-- `connection?: ContextualConnection` – the underlying `mariadb`
-  connection wrapped with additional context information. You normally
-  do not interact with it directly.
-
-#### Methods
-
-All methods have the same signature and return types as in
-`@itrocks/mysql.Mysql`; the extra behavior is that each call pushes the
-relevant entity type or instance to an internal context stack before the
-query, and pops it afterwards.
-
-- `async connect(): Promise<ContextualConnection>`
-
-  Opens the connection and installs the contextual behavior so that
-  errors can trigger schema maintenance.
-
-- `async insert<T extends object>(object: T): Promise<Entity<T>>`
-
-  Inserts a new row for `object`. If a “table does not exist” or
-  “column not found / foreign key failed” error occurs, the
-  corresponding table (and, for collections, the join table) is created
-  or updated and the query is retried.
-
-- `async update<T extends object>(object: Entity<T>): Promise<Entity<T>>`
-
-  Updates an existing row; schema maintenance/automatic retry applies in
-  the same way as for `insert`.
-
-- `async deleteId<T extends object>(type: ObjectOrType<T>, id: any, property?: KeyOf<Entity<T>>): Promise<void>`
-
-  Deletes a row by its identifier; the entity `type` is used as context
-  for potential schema updates.
-
-- `async deleteRelatedId<T extends Entity>(object: T, property: KeyOf<T>, id: Identifier): Promise<void>`
-
-  Deletes a related entity (for example from a collection association).
-
-- `async read<T extends object>(type: Type<T>, id: Identifier): Promise<Entity<T> | undefined>`
-
-  Reads a single entity instance by identifier.
-
-- `async readMultiple<T extends object>(type: Type<T>, ids: Identifier[]): Promise<Entity<T>[]>`
-
-  Reads several entities by their identifiers.
-
-- `async readCollection<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>): Promise<Entity<PT>[]>`
-
-  Reads a collection relationship (for example `article.tags`). The
-  context includes both the owning object and the related type so that
-  the implicit join table can be created or updated if necessary.
-
-- `async readCollectionIds<T extends object, PT extends object>(object: Entity<T>, property: KeyOf<T>, type?: Type<PT>): Promise<Identifier[]>`
-
-  Same as `readCollection`, but only retrieves identifiers.
-
-- `async search<T extends object>(type: Type<T>, search?: SearchType<T>, options?: Options): Promise<Entity<T>[]>`
-
-  Searches entities; the entity `type` becomes the context for schema
-  maintenance.
-
-### `class MysqlMaintainer`
-
-Low‑level utility that knows how to translate your TypeScript entity
-definitions (via reflection and schema packages) into MySQL tables and
-how to react to common schema‑related errors.
-
-#### Constructor
-
-```ts
-const maintainer = new MysqlMaintainer(connection)
-```
-
-- `connection` – a `mariadb` `Connection` used to inspect and modify the
-  database schema.
-
-#### Methods
-
-- `async createImplicitTable(type1: ObjectOrType, type2: ObjectOrType): Promise<boolean>`
-
-  Creates a join table between the two entity types, with a composite
-  primary key and cascading foreign keys. Returns `true` once the table
-  has been created.
-
-- `async createTable(type: Type): Promise<boolean>`
-
-  Creates a table corresponding to the given entity `type`. Throws if no
-  table name can be resolved for the type.
-
-- `implicitTableName(type1: ObjectOrType, type2: ObjectOrType): string`
-
-  Returns the name of the join table that would be used for a
-  many‑to‑many association between `type1` and `type2`. Throws if one of
-  the types is not mapped to a table.
-
-- `async manageError(error: SqlError, context: Context, sql: string | QueryOptions, values: any[]): Promise<boolean>`
-
-  Examines the MySQL error and, when it corresponds to a managed error
-  code, updates the tables for the provided `context` (entity type,
-  instance, or pair `[owner, relatedType]`). Returns `true` if the error
-  has been handled and the caller should retry the query, `false`
-  otherwise.
-
-- `async updateContextTables(context: Context, tableName?: string): Promise<boolean>`
-
-  Internal helper that inspects the database to see whether the table
-  for each context entity already exists. If not, it calls
-  `createTable`; otherwise it calls `updateTable`. When two contexts are
-  provided and their implicit join table matches `tableName`, the join
-  table is also created.
-
-- `async updateTable(type: Type): Promise<boolean>`
-
-  Computes the difference between the current MySQL table and the table
-  that should exist according to the entity `type`, then applies the
-  required SQL changes. Returns `true` when a change has been applied,
-  `false` when the schema was already up to date.
-
-## Typical use cases
-
-- Rapid prototyping: evolve your TypeScript entity models and let
-  `mysql-maintainer` adjust the database schema on the fly while you
-  insert, update, or query data.
-- Developer workstations and test environments where automatic schema
-  updates remove the need for manual migrations.
-- Applications with many small deployments where you prefer incremental
-  schema evolution handled by the application itself.
-- Projects using the `@itrocks/storage` / `@itrocks/mysql` stack that
-  want schema maintenance without writing migration scripts.
-- Custom migration tools or CLI scripts built on top of
-  `MysqlMaintainer` to validate and update schema before a new version
-  of the application is started.
+The `compose` entry enriches `@itrocks/mysql` with the automatic maintenance behaviour. It uses the standard
+[`@itrocks/compose`](https://github.com/itrocks-ts/compose) mechanism for enriching one module with another module's
+features.
+
+The `dataSource` entry above configures the project's main data source. You can instead create other MySQL data sources
+as described in the [`@itrocks/mysql` documentation](https://github.com/itrocks-ts/mysql). Every data source based on
+the composed `@itrocks/mysql` implementation is maintained automatically.
+
+That is the complete setup. Keep changing and using persistent object classes through the usual it.rocks storage
+operations; the required database changes are applied when an operation first needs them.
+
+## Use outside the it.rocks framework
+
+The same integration principle can be used without `@itrocks/framework`:
+
+1. Install [`@itrocks/mysql`](https://github.com/itrocks-ts/mysql) and a mixin-based composition system such as
+   [`@itrocks/compose`](https://github.com/itrocks-ts/compose). A wrapper implementing the same API as `@itrocks/mysql`
+   can be used instead.
+2. Create the required `@itrocks/mysql` data sources as described in its
+   [documentation](https://github.com/itrocks-ts/mysql). This package does not change how data sources are configured.
+3. Install `@itrocks/mysql-maintainer` in the project.
+4. Use the chosen composition system to enrich the `Mysql` implementation from `@itrocks/mysql` with the behaviour
+   supplied by `@itrocks/mysql-maintainer`. Refer to the
+   [`@itrocks/compose` documentation](https://github.com/itrocks-ts/compose) when using that package.
+5. Use the MySQL data sources normally. Their operations now trigger automatic maintenance when the current database
+   structure no longer supports the persistent object model.
+
+The application integrator is responsible for performing the composition early enough and according to the chosen
+composition system's loading rules.
+
+## How it works
+
+The package enriches the usual `Mysql` operations with the context required to identify the persistent classes involved.
+It intercepts MySQL errors that indicate a missing or outdated table, column, or foreign key, derives the expected
+schema from the object model, applies the required structural changes, and retries the original operation.
+
+For example, a read follows this simplified sequence:
+
+1. The application reads an object through a MySQL data source as usual.
+2. The enriched data source records the class being read and executes the SQL query.
+3. If MySQL reports a supported structure error, the maintainer compares the database with the schema derived from
+   that class and updates the affected table or relationship table.
+4. The data source retries the same query and returns the read result to the application.
+
+The exported classes that implement context tracking, error handling, schema updates, and retries are internal
+mechanics of this integration. They are not a separate API that an application needs to call.
+
+## Persistent model requirements
+
+Automatic maintenance derives database structure from business classes and their reflection metadata. Those classes
+must follow the it.rocks persistent object conventions, including the decorators and metadata used by its ORM packages.
+
+The current implementation is strongly coupled to the it.rocks ORM ecosystem. Its
+[`npm dependencies`](https://www.npmjs.com/package/@itrocks/mysql-maintainer?activeTab=dependencies) show the
+reflection, storage, schema conversion, and schema diff modules involved. Outside a full it.rocks application, the
+integrator must provide a compatible model and metadata environment in addition to the MySQL and composition
+integrations described above.
