@@ -17,6 +17,9 @@
 	},
 	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
 	"devDependencies": {
+		"@itrocks/class-file": "latest",
+		"@itrocks/rename": "latest",
+		"@types/node": "^24.10",
 		"typescript": "^7.0"
 	},
 	"engines": {
@@ -49,7 +52,9 @@
 		"url": "git+https://github.com/itrocks-ts/mysql-maintainer.git"
 	},
 	"scripts": {
-		"build": "tsc"
+		"build": "tsc",
+		"test": "npm run build && node --test \"test/**/*.test.mjs\"",
+		"test:integration": "npm run build && node --test \"test/**/*.integration.mjs\""
 	},
-	"version": "0.2.8"
+	"version": "0.3.0"
 }

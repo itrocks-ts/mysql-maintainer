@@ -13,7 +13,7 @@ import { QueryOptions }    from 'mariadb'
 import { SqlError }        from 'mariadb'
 import { Context }         from './contextual-connection'
 
-export { Mysql } from './mysql'
+export { Mysql, UniqueIndexMaintenanceError } from './mysql'
 
 export const DEBUG = false
 

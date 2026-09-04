@@ -68,6 +68,8 @@ composition system's loading rules.
 ## How it works
 
 The package enriches the usual `Mysql` operations with the context required to identify the persistent classes involved.
+Each connection stores that context with `AsyncLocalStorage`, so concurrent operations on different classes cannot
+overwrite one another's maintenance target.
 It intercepts MySQL errors that indicate a missing or outdated table, column, or foreign key, derives the expected
 schema from the object model, applies the required structural changes, and retries the original operation.
 
@@ -81,6 +83,16 @@ For example, a read follows this simplified sequence:
 
 The exported classes that implement context tracking, error handling, schema updates, and retries are internal
 mechanics of this integration. They are not a separate API that an application needs to call.
+
+Unique indexes declared with `@Unique` are checked before the first insert or update of each persistent class on a
+database connection. This lazy preflight also detects an index added to a class after its table already exists. Writes
+of the same class on the same connection share one preflight, and a new connection performs the check again.
+
+If existing duplicate rows prevent a unique index from being created, the maintainer does not alter or delete those
+rows. It rejects the write with a generic `UniqueIndexMaintenanceError`. Operational logs contain only a fixed event
+name and a driver error code from a closed operational allowlist; they do not contain SQL, parameters, driver messages,
+arbitrary code strings, or stored values. Once an
+operator resolves the duplicates, a later write retries the preflight.
 
 ## Persistent model requirements
 
