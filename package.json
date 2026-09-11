@@ -13,6 +13,7 @@
 		"@itrocks/schema-diff-mysql": "latest",
 		"@itrocks/storage": "latest",
 		"@itrocks/store": "latest",
+		"@itrocks/unique": "latest",
 		"mariadb": "^3.4"
 	},
 	"description": "Reactively maintains database structure by updating schema and retrying on MySQL errors",
@@ -56,5 +57,5 @@
 		"test": "npm run build && node --test \"test/**/*.test.mjs\"",
 		"test:integration": "npm run build && node --test \"test/**/*.integration.mjs\""
 	},
-	"version": "0.3.1"
+	"version": "0.3.2"
 }

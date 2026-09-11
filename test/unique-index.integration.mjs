@@ -5,7 +5,7 @@ import { mysqlDependsOn }              from '@itrocks/mysql'
 import { toColumn }                    from '@itrocks/rename'
 import { Store }                       from '@itrocks/store'
 import { storeOf }                     from '@itrocks/store'
-import { Unique }                      from '@itrocks/store'
+import { Unique }                      from '@itrocks/unique'
 import { Mysql }                       from '../cjs/mysql-maintainer.js'
 import { UniqueIndexMaintenanceError } from '../cjs/mysql-maintainer.js'
 import { UniqueRecord }                from './unique-record.fixture.mjs'
@@ -20,7 +20,7 @@ const config = {
 
 const suffix    = `${process.pid}_${Date.now()}`
 const tableName = `maintainer_unique_${suffix}`
-const indexName = `${tableName}_natural_key_unique`
+const indexName = 'natural_key'
 
 Store(tableName)(UniqueRecord)
 Unique()(UniqueRecord.prototype, 'naturalKey')

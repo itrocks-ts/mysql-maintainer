@@ -84,9 +84,11 @@ For example, a read follows this simplified sequence:
 The exported classes that implement context tracking, error handling, schema updates, and retries are internal
 mechanics of this integration. They are not a separate API that an application needs to call.
 
-Unique indexes declared with `@Unique` are checked before the first insert or update of each persistent class on a
-database connection. This lazy preflight also detects an index added to a class after its table already exists. Writes
-of the same class on the same connection share one preflight, and a new connection performs the check again.
+Unique indexes declared with `@Unique` from
+[`@itrocks/unique`](https://github.com/itrocks-ts/unique) are checked before the first insert or update of each
+persistent class on a database connection. This lazy preflight also detects an index added to a class after its table
+already exists. Writes of the same class on the same connection share one preflight, and a new connection performs the
+check again.
 
 If existing duplicate rows prevent a unique index from being created, the maintainer does not alter or delete those
 rows. It rejects the write with a generic `UniqueIndexMaintenanceError`. Operational logs contain only a fixed event
