@@ -39,3 +39,21 @@ test('projection and count retain all related maintenance contexts during concur
 	}
 	assert.equal(connection.contextStorage.getStore(), undefined)
 })
+
+test('maintenance visits every graph type and resolves a link within a larger context', async () => {
+	const { MysqlMaintainer } = require('@itrocks/mysql-maintainer')
+	const { Store } = require('@itrocks/store')
+	class Other
+	{}
+	Store('projection_root')(Root)
+	Store('projection_related')(Related)
+	Store('projection_other')(Other)
+	const visited = []
+	const links = []
+	const maintainer = new MysqlMaintainer({ query: async () => [{}] })
+	maintainer.updateTable = async type => { visited.push(type); return true }
+	maintainer.createImplicitTable = async (left, right) => { links.push([left, right]); return true }
+	await maintainer.updateContextTables([Root, Related, Other], 'projection_related_projection_root')
+	assert.deepEqual(visited, [Root, Related, Other])
+	assert.deepEqual(links, [[Root, Related]])
+})

@@ -94,10 +94,15 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 				throw 'No table name for type'
 			}
 			const exists = (await this.connection.query('SHOW TABLES LIKE ?', tableName)) as Array<any>
-			result ||= await (exists.length ? this.updateTable(type) : this.createTable(type))
+			result = await (exists.length ? this.updateTable(type) : this.createTable(type)) || result
 		}
-		if ((contexts.length === 2) && (this.implicitTableName(contexts[0], contexts[1]) === tableName)) {
-			result ||= await this.createImplicitTable(contexts[0], contexts[1])
+		if (tableName) {
+			for (let left = 0; left < contexts.length; left ++) {
+				for (let right = left + 1; right < contexts.length; right ++) {
+					if (this.implicitTableName(contexts[left], contexts[right]) !== tableName) continue
+					result = await this.createImplicitTable(contexts[left], contexts[right]) || result
+				}
+			}
 		}
 		return result
 	}
