@@ -12,6 +12,7 @@
 		"@itrocks/schema-diff": "latest",
 		"@itrocks/schema-diff-mysql": "latest",
 		"@itrocks/schema-to-mysql": "latest",
+		"@itrocks/sql-build": "latest",
 		"@itrocks/storage": "latest",
 		"@itrocks/store": "latest",
 		"@itrocks/unique": "latest",
@@ -21,6 +22,7 @@
 	"devDependencies": {
 		"@itrocks/class-file": "latest",
 		"@itrocks/rename": "latest",
+		"@itrocks/sql-join": "latest",
 		"@types/node": "^24.10",
 		"typescript": "^7.0"
 	},
@@ -58,5 +60,5 @@
 		"test": "npm run build && node --test \"test/**/*.test.mjs\"",
 		"test:integration": "npm run build && node --test \"test/**/*.integration.mjs\""
 	},
-	"version": "0.3.3"
+	"version": "0.4.0"
 }

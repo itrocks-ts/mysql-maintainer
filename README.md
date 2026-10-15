@@ -68,6 +68,7 @@ composition system's loading rules.
 ## How it works
 
 The package enriches the usual `Mysql` operations with the context required to identify the persistent classes involved.
+Projection, search and count queries retain every root and related type supplied by the MySQL query graph.
 Each connection stores that context with `AsyncLocalStorage`, so concurrent operations on different classes cannot
 overwrite one another's maintenance target.
 It intercepts MySQL errors that indicate a missing or outdated table, column, or foreign key, derives the expected

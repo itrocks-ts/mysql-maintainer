@@ -4,6 +4,7 @@ import { typeOf }               from '@itrocks/class-type'
 import { Mysql as M }           from '@itrocks/mysql'
 import { ReflectClass }         from '@itrocks/reflect'
 import { ReflectProperty }      from '@itrocks/reflect'
+import { SqlQuery }             from '@itrocks/sql-build'
 import { Entity }               from '@itrocks/storage'
 import { Identifier }           from '@itrocks/storage'
 import { Options }              from '@itrocks/storage'
@@ -97,6 +98,11 @@ export class Mysql extends M
 			return connection.superQuery<T>(sql, values)
 		}) as Connection['query']
 		await new MysqlMaintainer(originalConnection).updateContextTables(type)
+	}
+
+	protected async querySelection<T extends object>(query: SqlQuery, types: readonly Type[]): Promise<T[]>
+	{
+		return this.withContext([...types], () => super.querySelection<T>(query, types))
 	}
 
 	async read<T extends object>(type: Type<T>, id: Identifier)
