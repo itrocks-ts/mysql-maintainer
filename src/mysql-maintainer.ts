@@ -4,6 +4,7 @@ import { typeOf }          from '@itrocks/class-type'
 import { joinTableName }   from '@itrocks/mysql'
 import { MysqlToTable }    from '@itrocks/mysql-to-schema'
 import { ReflectToTable }  from '@itrocks/reflect-to-schema'
+import { Column }          from '@itrocks/schema'
 import { TableDiff }       from '@itrocks/schema-diff'
 import { SchemaDiffMysql } from '@itrocks/schema-diff-mysql'
 import { SchemaToMysql }   from '@itrocks/schema-to-mysql'
@@ -131,6 +132,17 @@ CONSTRAINT \`${joinTable}.${table2}_id\` FOREIGN KEY (${table2}_id) REFERENCES \
 
 		const schemaDiffMysql = new SchemaDiffMysql()
 		const sql = schemaDiffMysql.sql(schemaDiff, DELETION)
+
+		for (const change of schemaDiff.changes) {
+			const source = change.source
+			const target = change.target
+			if (!(source instanceof Column) || !(target instanceof Column) || !source.canBeNull
+				|| !['date', 'datetime'].includes(target.type.name)) continue
+			const column = '`' + source.name.replaceAll('`', '``') + '`'
+			const empty  = (target.type.name === 'date') ? '0000-00-00' : '0000-00-00 00:00:00'
+			const table  = '`' + tableName.replaceAll('`', '``') + '`'
+			await this.connection.query(`UPDATE ${table} SET ${column} = ? WHERE ${column} <=> NULL`, [empty])
+		}
 
 		await this.connection.query(sql)
 

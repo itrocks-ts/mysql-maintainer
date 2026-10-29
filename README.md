@@ -99,6 +99,10 @@ operator resolves the duplicates, a later write retries the preflight.
 
 ## Persistent model requirements
 
+Date and datetime columns use `NOT NULL` and zero dates for empty values. When maintenance changes a legacy nullable
+date column, it replaces existing null values with the matching zero date before executing the `ALTER TABLE`.
+Already populated dates are preserved.
+
 Automatic maintenance derives database structure from business classes and their reflection metadata. Those classes
 must follow the it.rocks persistent object conventions, including the decorators and metadata used by its ORM packages.
 

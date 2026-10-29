@@ -9,6 +9,7 @@
 		"@itrocks/mysql-to-schema": "latest",
 		"@itrocks/reflect": "latest",
 		"@itrocks/reflect-to-schema": "latest",
+		"@itrocks/schema": "latest",
 		"@itrocks/schema-diff": "latest",
 		"@itrocks/schema-diff-mysql": "latest",
 		"@itrocks/schema-to-mysql": "latest",
@@ -60,5 +61,5 @@
 		"test": "npm run build && node --test \"test/**/*.test.mjs\"",
 		"test:integration": "npm run build && node --test \"test/**/*.integration.mjs\""
 	},
-	"version": "0.4.1"
+	"version": "0.4.2"
 }
